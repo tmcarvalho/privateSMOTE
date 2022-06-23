@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pandas = "*"
+pylint = "*"
+imblearn = "*"
+seaborn = "*"
+matplotlib = "*"
+ipython = "*"
+recordlinkage = "*"
+xgboost = "*"
+pika = "*"
+scipy = "*"
+sdv = {path = "./sdv"}
+
+[dev-packages]
+ipykernel = "*"
+
+[requires]
+python_version = "3.7"

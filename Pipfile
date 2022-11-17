@@ -15,9 +15,11 @@ xgboost = "*"
 pika = "*"
 scipy = "*"
 sdv = {path = "./sdv"}
+icecream = "*"
 
 [dev-packages]
 ipykernel = "*"
+autopep8 = "*"
 
 [requires]
 python_version = "3.7"

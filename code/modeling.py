@@ -4,9 +4,9 @@ This script will test the predictive performance of the data sets.
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import make_scorer, f1_score, roc_auc_score
+from sklearn.metrics import accuracy_score, make_scorer, f1_score, roc_auc_score
 from imblearn.metrics import geometric_mean_score
-from sklearn.model_selection import GridSearchCV, RepeatedKFold, cross_validate
+from sklearn.model_selection import GridSearchCV, RepeatedKFold
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
@@ -48,7 +48,7 @@ def evaluate_model(x_train, x_test, y_train, y_test):
 
     param3 = {}
     param3['classifier__C'] = np.logspace(-4, 4, 3)
-    param3['classifier__max_iter'] = [1000000, 10000000]
+    param3['classifier__max_iter'] = [1000000, 100000000]
     param3['classifier'] = [reg]
 
     # define metric functions
@@ -64,36 +64,42 @@ def evaluate_model(x_train, x_test, y_train, y_test):
     pipeline = Pipeline([('classifier', rf)])
     params = [param1, param2, param3]
 
+    print("Start modeling with CV")
     # Train the grid search model
     gs = GridSearchCV(
         pipeline,
         param_grid=params,
         cv=RepeatedKFold(n_splits=5, n_repeats=2),
         scoring=scoring,
-        refit='f1_weighted',
+        refit='acc',
         return_train_score=True,
         n_jobs=-1).fit(x_train, y_train)
 
-    validation = {}
-
-    # Store results from grid search
-    validation = gs.cv_results_
-
-    score = {
-    'model':[],
-    'test_f1_weighted':[], 'test_gmean':[], 'test_roc_auc':[]
+    score_cv = {
+    'params':[], 'model':[],
+    'test_accuracy': [], 'test_f1_weighted':[], 'test_gmean':[], 'test_roc_auc':[]
     }
-    
-    # apply best cv result in all training data (without CV - out of sample)
-    retrain = gs.best_estimator_.named_steps['classifier'].fit(x_train, y_train)
-    # TODO in future: retrain with all models with best parameters in CV
-    score['model'] = {gs.best_estimator_.named_steps["classifier"]}
-    
-    # Predict on test data with best params
-    y_pred = retrain.predict(x_test)
-    # Store predicted results
-    score['test_f1_weighted'] = f1_score(y_test, y_pred, average='weighted')
-    score['test_gmean'] = geometric_mean_score(y_test, y_pred)
-    score['test_roc_auc'] = roc_auc_score(y_test, y_pred)
-    
-    return validation, score
+    # Store results from grid search
+    validation = pd.DataFrame(gs.cv_results_)
+    validation['model'] = validation['param_classifier']
+    validation['model'] = validation['model'].apply(lambda x: 'Random Forest' if 'RandomForest' in str(x) else x)
+    validation['model'] = validation['model'].apply(lambda x: 'XGBoost' if 'XGB' in str(x) else x)
+    validation['model'] = validation['model'].apply(lambda x: 'Logistic Regression' if 'Logistic' in str(x) else x)
+
+    print("Start modeling in out of sample")
+
+    for i in range(len(validation)):
+        # set each model for prediction on test
+        clf_best = gs.best_estimator_.set_params(**gs.cv_results_['params'][i]).fit(x_train, y_train)
+        clf = clf_best.predict(x_test)
+        score_cv['params'].append(str(gs.cv_results_['params'][i]))
+        score_cv['model'].append(validation.loc[i, 'model'])
+        score_cv['test_accuracy'].append(accuracy_score(y_test, clf))
+        score_cv['test_f1_weighted'].append(f1_score(y_test, clf, average='weighted'))
+        score_cv['test_gmean'].append(geometric_mean_score(y_test, clf))
+        score_cv['test_roc_auc'].append(roc_auc_score(y_test, clf))
+
+
+    score_cv = pd.DataFrame(score_cv)
+
+    return [validation, score_cv]

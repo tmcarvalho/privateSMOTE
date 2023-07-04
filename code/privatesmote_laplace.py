@@ -167,7 +167,6 @@ def PrivateSMOTE_force_laplace_(msg):
     """
     print(msg)
 
-    start= time.time()
     output_interpolation_folder = 'output/oversampled/PrivateSMOTE_force_laplace_k3'
     
     # get 80% of data to synthesise

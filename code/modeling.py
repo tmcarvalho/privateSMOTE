@@ -1,6 +1,7 @@
 """Predictive performance
 This script will test the predictive performance of the data sets.
 """
+import os
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -10,6 +11,15 @@ from sklearn.model_selection import GridSearchCV, RepeatedKFold
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
+import argparse
+
+
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description='Master Example')
+parser.add_argument('--input_file', type=str, default="none")
+args = parser.parse_args()
+
+
 # %% evaluate a model
 def evaluate_model(x_train, x_test, y_train, y_test):
     """Evaluatation
@@ -103,3 +113,37 @@ def evaluate_model(x_train, x_test, y_train, y_test):
     score_cv = pd.DataFrame(score_cv)
 
     return [validation, score_cv]
+
+
+def save_results(file, results):
+    """Create a folder if dooes't exist and save results
+
+    Args:
+        file (string): file name
+        results (list of Dataframes): results for cross validation and out of sample
+    """
+    output_folder_val = ('modeling_results/validation')
+    output_folder_test = ('modeling_results/test')
+    if not os.path.exists(output_folder_val): os.makedirs(output_folder_val)
+    if not os.path.exists(output_folder_test): os.makedirs(output_folder_test)
+
+    results[0].to_csv(f'{output_folder_val}/{file}', index=False)
+    results[1].to_csv(f'{output_folder_test}/{file}', index=False)
+
+
+
+test_data = pd.read_csv('ds38_test.csv')
+data = pd.read_csv(f'synth_data/{args.input_file}')
+
+# prepare data to modeling
+test_data = test_data.apply(LabelEncoder().fit_transform)
+data = data.apply(LabelEncoder().fit_transform)
+
+x_train, y_train = data.iloc[:, :-2], data.iloc[:, -2]
+
+x_test = test_data.iloc[:, :-1]
+y_test = test_data.iloc[:, -1]
+
+results = evaluate_model(x_train, x_test, y_train, y_test)
+
+save_results(args.input_file, results)

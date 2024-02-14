@@ -19,7 +19,7 @@ transf_data = pd.read_csv(f'synth_data/{args.transf_file}')
 
 control_data = pd.read_csv(f'{args.control_file}')
 
-evaluator = LinkabilityEvaluator(ori=data, 
+evaluator = LinkabilityEvaluator(ori=data,
                             syn=transf_data,
                             control=control_data,
                             n_attacks=len(control_data),

@@ -4,11 +4,13 @@ This script will test the predictive performance of the data sets.
 import os
 import pandas as pd
 import numpy as np
+from sklearn.calibration import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, make_scorer, f1_score, roc_auc_score
 from imblearn.metrics import geometric_mean_score
 from sklearn.model_selection import GridSearchCV, RepeatedKFold
 from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 import argparse
@@ -43,6 +45,9 @@ def evaluate_model(x_train, x_test, y_train, y_test):
             use_label_encoder=False,
             random_state=seed)
     reg = LogisticRegression(random_state=seed)
+    nnet = MLPClassifier(random_state=seed)
+
+    n_feat = x_train.shape[1]
 
     # set parameterisation
     param1 = {}
@@ -61,6 +66,15 @@ def evaluate_model(x_train, x_test, y_train, y_test):
     param3['classifier__max_iter'] = [1000000, 100000000]
     param3['classifier'] = [reg]
 
+    param4 = {}
+    param4['classifier__hidden_layer_sizes'] = [[n_feat], [n_feat // 2], [int(n_feat * (2 / 3))], [n_feat, n_feat // 2],
+                                              [n_feat, int(n_feat * (2 / 3))], [n_feat // 2, int(n_feat * (2 / 3))],
+                                              [n_feat, n_feat // 2, int(n_feat * (2 / 3))]
+                                              ]
+    param4['classifier__alpha'] = [5e-3, 1e-3, 1e-4]
+    param4['classifier__max_iter'] = [10000, 100000]
+    param4['classifier'] = [nnet]
+
     # define metric functions
     scoring = {
         'gmean': make_scorer(geometric_mean_score),
@@ -72,7 +86,7 @@ def evaluate_model(x_train, x_test, y_train, y_test):
         }
 
     pipeline = Pipeline([('classifier', rf)])
-    params = [param1, param2, param3]
+    params = [param1, param2, param3, param4]
 
     print("Start modeling with CV")
     # Train the grid search model
@@ -95,6 +109,7 @@ def evaluate_model(x_train, x_test, y_train, y_test):
     validation['model'] = validation['model'].apply(lambda x: 'Random Forest' if 'RandomForest' in str(x) else x)
     validation['model'] = validation['model'].apply(lambda x: 'XGBoost' if 'XGB' in str(x) else x)
     validation['model'] = validation['model'].apply(lambda x: 'Logistic Regression' if 'Logistic' in str(x) else x)
+    validation['model'] = validation['model'].apply(lambda x: 'Neural Network' if 'MLP' in str(x) else x)
 
     print("Start modeling in out of sample")
 
@@ -107,8 +122,7 @@ def evaluate_model(x_train, x_test, y_train, y_test):
         score_cv['test_accuracy'].append(accuracy_score(y_test, clf))
         score_cv['test_f1_weighted'].append(f1_score(y_test, clf, average='weighted'))
         score_cv['test_gmean'].append(geometric_mean_score(y_test, clf))
-        score_cv['test_roc_auc'].append(roc_auc_score(y_test, clf))
-
+        score_cv['test_roc_auc'].append(roc_auc_score(y_test, clf), max_fpr=0.001)
 
     score_cv = pd.DataFrame(score_cv)
 
@@ -127,9 +141,8 @@ def save_results(file, results):
     if not os.path.exists(output_folder_val): os.makedirs(output_folder_val)
     if not os.path.exists(output_folder_test): os.makedirs(output_folder_test)
 
-    results[0].to_csv(f'{output_folder_val}/{file}', index=False)
-    results[1].to_csv(f'{output_folder_test}/{file}', index=False)
-
+    results[0].to_csv(f'{output_folder_val}/{file.split("_")[0]}.csv', index=False)
+    results[1].to_csv(f'{output_folder_test}/{file("_")[0]}.csv', index=False)
 
 
 test_data = pd.read_csv('ds38_test.csv')

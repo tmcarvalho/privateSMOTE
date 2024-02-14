@@ -1,7 +1,6 @@
 ## $\epsilon$-PrivateSMOTE
 
 $\epsilon$-PrivateSMOTE is a technique designed for safeguarding against re-identification and linkage attacks, particularly addressing cases with a high re-identification risk. It generates synthetic data via noise-induced interpolation with differential privacy principles to obfuscate high-risk cases.
-
 $\epsilon$-PrivateSMOTE allows having new cases similar to the originals while preserving privacy and maximising predictive utility. Most importanly, $\epsilon$-PrivateSMOTE is a resource efficient and less time-consuming than conventional de-identification approaches such as deep learning and differential privacy-based solutions.
 
 
@@ -28,4 +27,4 @@ Analyse the linkability risk
 ### Cite
 
 
-All the experimental evaluation is available in [k-smote](https://github.com/tmcarvalho/k-smote).
+All the experimental evaluation is available in https://github.com/tmcarvalho/k-smote.

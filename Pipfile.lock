@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b74a82dc9d7d7aca1c7c343af019679d68a50a234696f973d0e6b791b21db144"
+            "sha256": "458e383f9c4c7c16d889801850db898a9fa6e5774dabd2f76cf3fb1216274aa1"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -23,6 +23,21 @@
             ],
             "index": "pypi",
             "version": "==0.0.2"
+        },
+        "imbalanced-learn": {
+            "hashes": [
+                "sha256:02ef5bc9ef046f44aa20353a904366a948f7944155e77b6f09b500a70981fd13",
+                "sha256:b9ccd9aaa3028699079d43a6d4d9fc9d039f55376733b31f87c7d9b125dcc165"
+            ],
+            "version": "==0.12.0"
+        },
+        "imblearn": {
+            "hashes": [
+                "sha256:d42c2d709d22c00d2b9a91e638d57240a8b79b4014122d92181fcd2549a2f79a",
+                "sha256:d8fbb662919c1b16f438ad91a8256220e53bcf6815c9ad5502c518b798de34f2"
+            ],
+            "index": "pypi",
+            "version": "==0.0"
         },
         "joblib": {
             "hashes": [

@@ -9,6 +9,7 @@ numpy = "*"
 scikit-learn = "*"
 anonymeter = "*"
 xgboost = "*"
+imblearn = "*"
 
 [dev-packages]
 ipykernel = "*"

@@ -27,4 +27,4 @@ Analyse the linkability risk
 ### Cite
 
 
-All the experimental evaluation is available in https://github.com/tmcarvalho/k-smote.
+All the experimental evaluation is available at https://github.com/tmcarvalho/k-smote.
